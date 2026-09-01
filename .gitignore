@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.env.*
+*.sqlite3
+
+# Django
+backend/staticfiles/
+backend/media/
+
+# Node
+node_modules/
+package-lock.json
+
+# Build outputs
+build/
+dist/
+*.log
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+node_modules
+
+# Installer / executable files
+*.exe

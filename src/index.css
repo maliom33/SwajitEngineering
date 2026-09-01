@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-elevated: #f8fafc;
+  --border-color: rgba(15, 23, 42, 0.08);
+  --shadow-color: rgba(15, 23, 42, 0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+}
+
+.text-slate-50,
+.text-slate-100,
+.text-slate-200,
+.text-slate-900,
+.text-slate-950 {
+  color: var(--text-primary) !important;
+}
+
+.text-slate-300,
+.text-slate-400,
+.text-slate-500,
+.text-slate-600,
+.text-slate-700,
+.text-slate-800 {
+  color: var(--text-secondary) !important;
+}
+
+html.dark {
+  color-scheme: dark;
+  --bg-page: #0b1120;
+  --bg-surface: #111827;
+  --bg-surface-2: #0f172a;
+  --bg-sidebar: #0f172a;
+  --bg-card: #1e293b;
+  --bg-elevated: #273449;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --shadow-color: rgba(2, 6, 23, 0.45);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply antialiased;
+  background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.15), transparent 26%), var(--bg-page);
+  color: var(--text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background-color: #2563eb;
+  color: white;
+}
+
+.light-page {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light-page [class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+.light-page .bg-slate-50,
+.light-page .bg-slate-100 {
+  background-color: #f8fafc !important;
+}
+
+.light-page .bg-slate-900,
+.light-page .bg-slate-950 {
+  background-color: #ffffff !important;
+}
+
+.light-page .border-slate-200,
+.light-page .border-slate-200\/80,
+.light-page .border-slate-300,
+.light-page .border-slate-700 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.light-page .text-slate-950,
+.light-page .text-slate-900,
+.light-page .text-slate-700,
+.light-page .text-slate-800 {
+  color: #0f172a !important;
+}
+
+.light-page .text-slate-600,
+.light-page .text-slate-500 {
+  color: #475569 !important;
+}
+
+.light-page .text-slate-400,
+.light-page .text-slate-300 {
+  color: #64748b !important;
+}
+
+.light-page .text-slate-100 {
+  color: #94a3b8 !important;
+}
+
+.light-page [class*="bg-[color:var(--bg-surface)]"] {
+  background-color: #ffffff !important;
+}
+
+.light-page .shadow-glass {
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.dark body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+html.dark .bg-white,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95,
+html.dark .bg-white\/80,
+html.dark .bg-white\/70 {
+  background-color: var(--bg-surface) !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: var(--bg-surface-2) !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: var(--bg-card) !important;
+}
+
+html.dark .bg-slate-900 {
+  background-color: var(--bg-surface) !important;
+}
+
+html.dark .bg-slate-950 {
+  background-color: var(--bg-sidebar) !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-300,
+html.dark .border-slate-700 {
+  border-color: var(--border-color) !important;
+}
+
+html.dark .shadow-glass {
+  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.35) !important;
+}
+
+html.dark .shadow-sm {
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.24) !important;
+}
+
+html.dark .card-glass {
+  background: rgba(17, 24, 39, 0.8);
+  border-color: var(--border-color);
+  backdrop-filter: blur(18px);
+}
+
+html.dark .hover\:bg-slate-50:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+html.dark .hover\:bg-slate-100:hover {
+  background-color: rgba(30, 41, 59, 0.75) !important;
+}
+
+html.dark .hover\:bg-slate-900:hover {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 9999px;
+}
+
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "134332618682",
+    "project_id": "swajit-engineering",
+    "storage_bucket": "swajit-engineering.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134332618682:android:75abda13af2091e35b2f83",
+        "android_client_info": {
+          "package_name": "com.example.employee_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDauG4-zl9F3bzJxtPrdzfpw1sXBsbBdHs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
