@@ -30,3 +30,6 @@ node_modules
 
 # Installer / executable files
 *.exe
+
+# Firebase Admin SDK credentials (backend/server-side, not for mobile)
+**/*-firebase-adminsdk*.json
