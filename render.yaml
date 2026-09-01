@@ -15,7 +15,9 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+        name: swajit-engineering-db
+        property: connectionString
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1,0.0.0.0"
       - key: CORS_ALLOWED_ORIGINS
@@ -36,3 +38,7 @@ services:
         value: "true"
       - key: PASSWORD_RESET_URL
         value: "https://your-frontend-domain.example/reset-password"
+        databases:
+      - name: swajit-engineering-db
+        plan: free
+        region: oregon
