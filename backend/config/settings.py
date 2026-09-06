@@ -21,6 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 
+def _normalize_email_setting(value):
+    if value is None:
+        return ''
+    return str(value).strip().replace(' ', '')
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -199,11 +205,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+EMAIL_HOST = os.getenv('EMAIL_HOST', '').strip()
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST_USER = _normalize_email_setting(os.getenv('EMAIL_HOST_USER', ''))
+EMAIL_HOST_PASSWORD = _normalize_email_setting(os.getenv('EMAIL_HOST_PASSWORD', ''))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() == 'true'
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')
-EMAIL_VERIFICATION_URL = os.getenv('EMAIL_VERIFICATION_URL', '')
-PASSWORD_RESET_URL = os.getenv('PASSWORD_RESET_URL', 'http://localhost:5173/reset-password')
+DEFAULT_FROM_EMAIL = _normalize_email_setting(os.getenv('DEFAULT_FROM_EMAIL', ''))
+EMAIL_VERIFICATION_URL = os.getenv('EMAIL_VERIFICATION_URL', '').strip()
+PASSWORD_RESET_URL = os.getenv('PASSWORD_RESET_URL', 'http://localhost:5173/reset-password').strip()

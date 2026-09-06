@@ -14,8 +14,9 @@ class AttendanceLocationService {
       );
     }
     var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied)
+    if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+    }
     if (permission == LocationPermission.deniedForever) {
       await Geolocator.openAppSettings();
       throw StateError(
@@ -117,8 +118,9 @@ class FaceCameraService {
 
   Future<FaceCaptureResult> captureAndDetect() async {
     final controller = _controller;
-    if (controller == null || !controller.value.isInitialized)
+    if (controller == null || !controller.value.isInitialized) {
       throw StateError('Camera is not initialized.');
+    }
     final image = await controller.takePicture();
     final faces = await _detector.processImage(
       InputImage.fromFilePath(image.path),

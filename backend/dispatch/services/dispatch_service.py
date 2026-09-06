@@ -6,6 +6,8 @@ from django.utils import timezone
 from logistics.services.delivery_service import update_delivery_status
 from warehouse.models import StockReservation
 
+from sales.models import Order, OrderStatusHistory
+
 from ..models import DeliveryChallan, Dispatch, DispatchItem, DispatchStatusHistory
 
 
@@ -100,6 +102,11 @@ def confirm_dispatch(dispatch, *, confirmed_by):
     dispatch.actual_dispatch_date = timezone.now()
     dispatch.save(update_fields=['dispatch_status', 'actual_dispatch_date', 'updated_at'])
     DispatchStatusHistory.objects.create(dispatch=dispatch, previous_status=previous, new_status=Dispatch.Status.DISPATCHED, changed_by=confirmed_by)
+    order = Order.objects.select_for_update().get(pk=dispatch.order_id)
+    if order.order_status == Order.Status.READY_FOR_DISPATCH:
+        order.order_status = Order.Status.DISPATCHED
+        order.save(update_fields=['order_status', 'updated_at'])
+        OrderStatusHistory.objects.create(order=order, previous_status=Order.Status.READY_FOR_DISPATCH, new_status=Order.Status.DISPATCHED, changed_by=confirmed_by, remarks='Dispatch confirmed.')
     delivery = dispatch.delivery
     if delivery.delivery_status == 'CREATED':
         update_delivery_status(delivery, new_status='ASSIGNED', changed_by=confirmed_by, remarks='Dispatch confirmed with assigned driver and vehicle.')

@@ -38,8 +38,9 @@ class EmployeeRepository {
     final employee =
         (response.data as Map<String, dynamic>)['employee']
             as Map<String, dynamic>?;
-    if (employee == null)
+    if (employee == null) {
       throw StateError('Authenticated user is not linked to an employee.');
+    }
     return Employee.fromJson(employee);
   }
 
@@ -93,13 +94,19 @@ class EmployeeRepository {
   Future<void> requestEmailVerification({
     String? email,
     String? employeeCode,
-  }) => _api.dio.post(
-    'auth/verification/email/request/',
-    data: {
-      if (email case final value?) 'email': value,
-      if (employeeCode case final value?) 'employee_code': value,
-    },
-  );
+  }) {
+    final payload = <String, String>{};
+    if (email != null && email.trim().isNotEmpty) {
+      payload['email'] = email.trim();
+    }
+    if (employeeCode != null && employeeCode.trim().isNotEmpty) {
+      payload['employee_code'] = employeeCode.trim();
+    }
+    if (payload.isEmpty) {
+      throw StateError('Enter your email and Employee ID to resend the verification link.');
+    }
+    return _api.dio.post('auth/verification/email/request/', data: payload);
+  }
 }
 
 class AttendanceRepository {
@@ -202,45 +209,55 @@ class LeaveRepository {
   );
 }
 
+String _extractErrorMessage(dynamic data) {
+  if (data is Map) {
+    final detail = data['detail'];
+    if (detail is String && detail.trim().isNotEmpty) return detail.trim();
+    final message = data['message'];
+    if (message is String && message.trim().isNotEmpty) return message.trim();
+    for (final value in data.values) {
+      if (value is List && value.isNotEmpty) {
+        final first = value.first;
+        if (first is String && first.trim().isNotEmpty) return first.trim();
+      }
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+    }
+  }
+  if (data is String && data.trim().isNotEmpty) return data.trim();
+  return '';
+}
+
 String userMessage(Object error) {
   if (error is StateError) return error.message.toString();
   if (error is DioException) {
     final status = error.response?.statusCode;
     final data = error.response?.data;
+    final responseMessage = _extractErrorMessage(data);
     if (status == 401) return 'Your session has expired. Please login again.';
-    if (status == 503)
+    if (status == 503) {
+      if (responseMessage.isNotEmpty) return responseMessage;
       return 'Verification is temporarily unavailable. Please try again later.';
+    }
     if (status == 400) {
-      if (data is Map && data['detail'] is String)
-        return data['detail'] as String;
-      if (data is Map &&
-          data['non_field_errors'] is List &&
-          (data['non_field_errors'] as List).isNotEmpty)
-        return (data['non_field_errors'] as List).first.toString();
-      if (data is Map && data['attendance_date'] is List)
-        return data['attendance_date'].first.toString();
-      if (data is Map && data['photo'] is List)
-        return data['photo'].first.toString();
-      if (data is Map && data['location'] is List)
-        return data['location'].first.toString();
-      if (data is Map) {
-        for (final value in data.values) {
-          if (value is List && value.isNotEmpty) return value.first.toString();
-          if (value is String && value.isNotEmpty) return value;
-        }
-      }
+      if (responseMessage.isNotEmpty) return responseMessage;
       return 'The request could not be completed. Please check your details and try again.';
     }
-    if (status == 413)
+    if (status == 413) {
       return 'The photo is too large. Please retake the photo.';
+    }
     if (status == 403) {
-      if (data is Map && data['detail'] is String)
-        return data['detail'] as String;
+      if (responseMessage.isNotEmpty) return responseMessage;
       return 'You do not have permission to access this feature.';
     }
+    if (status != null && status >= 400 && status < 600) {
+      if (responseMessage.isNotEmpty) return responseMessage;
+      return 'The server rejected the request. Please try again later.';
+    }
     if (error.type == DioExceptionType.connectionError ||
-        error.type == DioExceptionType.connectionTimeout)
+        error.type == DioExceptionType.connectionTimeout) {
       return 'Unable to connect to server. Please check your internet connection.';
+    }
+    if (responseMessage.isNotEmpty) return responseMessage;
   }
   return 'Something went wrong. Please try again later.';
 }

@@ -1,6 +1,8 @@
 from django.db import transaction
 from django.utils import timezone
 
+from sales.models import Order, OrderStatusHistory
+
 from ..models import Delivery, DeliveryStatusHistory, Driver, Vehicle
 
 
@@ -74,6 +76,12 @@ def update_delivery_status(delivery, *, new_status, changed_by, location_descrip
     if new_status == Delivery.Status.DELIVERED:
         delivery.actual_delivery_time = timezone.now()
     delivery.save(update_fields=['delivery_status', 'pickup_time', 'actual_delivery_time', 'updated_at'])
+    if new_status == Delivery.Status.DELIVERED:
+        order = Order.objects.select_for_update().get(pk=delivery.order_id)
+        if order.order_status == Order.Status.DISPATCHED:
+            order.order_status = Order.Status.DELIVERED
+            order.save(update_fields=['order_status', 'updated_at'])
+            OrderStatusHistory.objects.create(order=order, previous_status=Order.Status.DISPATCHED, new_status=Order.Status.DELIVERED, changed_by=changed_by, remarks='Delivery completed.')
     if delivery.driver_id:
         driver = Driver.objects.select_for_update().get(pk=delivery.driver_id)
         driver.availability_status = Driver.AvailabilityStatus.ON_DELIVERY if new_status in [Delivery.Status.PICKED_UP, Delivery.Status.IN_TRANSIT, Delivery.Status.OUT_FOR_DELIVERY] else Driver.AvailabilityStatus.AVAILABLE if new_status in [Delivery.Status.DELIVERED, Delivery.Status.FAILED, Delivery.Status.CANCELLED] else driver.availability_status

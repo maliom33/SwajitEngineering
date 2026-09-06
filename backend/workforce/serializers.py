@@ -44,13 +44,15 @@ class EmployeeSerializer(serializers.ModelSerializer):
     email_verified = serializers.SerializerMethodField(read_only=True)
     phone_verified = serializers.SerializerMethodField(read_only=True)
     profile_complete = serializers.SerializerMethodField(read_only=True)
+    department_name = serializers.SerializerMethodField(read_only=True)
+    designation_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Employee
         fields = [
             field.name for field in Employee._meta.fields
             if field.name not in {'activation_token_hash', 'activation_expires_at'}
-        ] + ['activation_token', 'email_verified', 'phone_verified', 'profile_complete']
+        ] + ['activation_token', 'email_verified', 'phone_verified', 'profile_complete', 'department_name', 'designation_name']
         read_only_fields = ['employee_code', 'user', 'activation_token_hash', 'activation_expires_at']
 
     def get_activation_token(self, employee):
@@ -64,6 +66,12 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def get_profile_complete(self, employee):
         return employee.profile_complete()
+
+    def get_department_name(self, employee):
+        return employee.department.department_name if employee.department else None
+
+    def get_designation_name(self, employee):
+        return employee.designation.designation_name if employee.designation else None
 
     def validate_profile_photo(self, photo):
         if photo.size > 5 * 1024 * 1024:
