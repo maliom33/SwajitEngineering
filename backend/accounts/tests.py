@@ -97,6 +97,11 @@ class AuthenticationAndRBACTests(APITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertTrue(deliver.called)
 
+	def test_email_password_values_are_normalized_for_smtp(self):
+		from config.settings import _normalize_email_setting
+		self.assertEqual(_normalize_email_setting('uukx ayem yqui ejwd'), 'uukxayemyquiejwd')
+		self.assertEqual(_normalize_email_setting('  swajeet51@gmail.com  '), 'swajeet51@gmail.com')
+
 	def test_password_reset_request_sends_email_for_existing_user(self):
 		with patch('accounts.services.password_reset_service.send_mail') as deliver:
 			response = self.client.post(reverse('auth-password-reset-request'), {'email': self.user.email}, format='json')

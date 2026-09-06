@@ -60,7 +60,7 @@ function PayrollManagement() {
       ...item,
       employeeId: employee?.employee_code || `Employee #${item.employee}`,
       employeeName: employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown employee',
-      department: employee ? `Department #${employee.department}` : 'Not available',
+      department: employee?.department_name || 'Not available',
       payrollStatus: formatStatus(run?.status),
     };
   }), [payrollItems, employeeMap, runMap]);

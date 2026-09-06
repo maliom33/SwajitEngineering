@@ -30,8 +30,8 @@ function HRHome() {
       setEmployees((results || []).map((employee) => ({
         id: employee.employee_code || employee.employee_id,
         name: `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || 'Unnamed employee',
-        department: employee.department ? `Department #${employee.department}` : 'Not available',
-        designation: employee.designation ? `Designation #${employee.designation}` : 'Not available',
+        department: employee.department_name || 'Not available',
+        designation: employee.designation_name || 'Not available',
         attendance: 'Not available',
         status: employee.status || 'Not available',
         emailVerified: employee.email_verified,
@@ -40,8 +40,16 @@ function HRHome() {
       })));
       const leaveResults = Array.isArray(leaveResponse.data) ? leaveResponse.data : leaveResponse.data?.results;
       setPendingLeaveCount((leaveResults || []).filter((request) => request.status === 'PENDING').length);
-    } catch {
-      setErrorMessage('We could not load the HR dashboard. Please try again.');
+    } catch (error) {
+      let errorMsg = 'We could not load the HR dashboard. Please try again.';
+      if (error.response?.status === 403) {
+        errorMsg = 'You do not have permission to view the HR dashboard.';
+      } else if (error.response?.status >= 500) {
+        errorMsg = 'The HR service is temporarily unavailable. Please try again shortly.';
+      } else if (!error.response) {
+        errorMsg = 'The backend is unavailable. Please check the server and try again.';
+      }
+      setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }

@@ -91,6 +91,7 @@ import FinanceProfile from './pages/finance/FinanceProfile';
 import ProtectedRoute from './auth/ProtectedRoute';
 import EmployeePortal, { EmployeeAttendance, EmployeeDashboard, EmployeeLeave, EmployeeLogout, EmployeeProfile } from './pages/EmployeePortal';
 import ActivateAccount from './pages/ActivateAccount';
+import VerifyEmail from './pages/VerifyEmail';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
@@ -103,6 +104,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/activate" element={<ActivateAccount />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         <Route path="/employee" element={<ProtectedRoute><EmployeePortal /></ProtectedRoute>}>
           <Route index element={<EmployeeDashboard />} />

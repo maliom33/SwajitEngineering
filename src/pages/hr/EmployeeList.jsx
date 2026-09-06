@@ -16,16 +16,16 @@ function getValidationMessage(error) {
 }
 
 function mapEmployee(employee, departments, designations) {
-  const department = departments.find((item) => item.department_id === employee.department);
-  const designation = designations.find((item) => item.designation_id === employee.designation);
+  const department = employee.department_name || (employee.department ? departments.find((item) => item.department_id === employee.department)?.department_name : null);
+  const designation = employee.designation_name || (employee.designation ? designations.find((item) => item.designation_id === employee.designation)?.designation_name : null);
 
   return {
     id: employee.employee_code || employee.employee_id,
     employeeId: employee.employee_id,
     record: employee,
     name: `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || 'Unnamed employee',
-    department: department?.department_name || 'Not available',
-    designation: designation?.designation_name || 'Not available',
+    department: department || 'Not available',
+    designation: designation || 'Not available',
     gender: employee.gender || 'Not available',
     attendance: 'Not available',
     status: formatStatus(employee.status),

@@ -19,3 +19,7 @@ export function refreshToken(refresh) {
 export function getCurrentUser() {
   return client.get('auth/me/');
 }
+
+export function verifyEmail(token) {
+  return client.get('auth/verification/email/verify/', { params: { token } });
+}

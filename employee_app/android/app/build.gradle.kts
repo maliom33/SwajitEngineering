@@ -33,11 +33,25 @@ android {
         versionName = flutter.versionName
     }
 
+    val debugKeystore = file(System.getProperty("user.home") + "/.android/debug.keystore")
+
+    signingConfigs {
+        create("release") {
+            if (debugKeystore.exists()) {
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+                storeFile = debugKeystore
+                storePassword = "android"
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // For development/demo builds, use debug keystore
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

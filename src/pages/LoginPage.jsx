@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { login } from '../api/auth';
 import { clearAuth, storeAuth } from '../api/storage';
 import { getRoleRoute } from '../auth/roleRoutes';
+import logo from '../images/logo.png';
 
 function LoginPage({ onNavigateToHome = () => {} }) {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ function LoginPage({ onNavigateToHome = () => {} }) {
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <img src="src/images/logo.png" alt="logo" className='flex h-12 w-15'/>
+            <img src={logo} alt="Swajit Engineering logo" className='h-12 w-15 object-contain'/>
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Swajit Engineering</p>
               <p className="text-sm font-semibold text-slate-950">ERP & Operations Platform</p>

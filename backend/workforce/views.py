@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.http import FileResponse, Http404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
@@ -63,6 +64,11 @@ class DepartmentViewSet(WorkforceViewSet):
     serializer_class = DepartmentSerializer
     write_permissions = {'create': 'MANAGE_EMPLOYEES', 'update': 'MANAGE_EMPLOYEES', 'partial_update': 'MANAGE_EMPLOYEES', 'destroy': 'MANAGE_EMPLOYEES'}
 
+    def list(self, request, *args, **kwargs):
+        if not Department.objects.exists():
+            call_command('seed_departments_designations')
+        return super().list(request, *args, **kwargs)
+
 
 class DesignationViewSet(WorkforceViewSet):
     queryset = Designation.objects.all()
@@ -71,6 +77,9 @@ class DesignationViewSet(WorkforceViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if not queryset.exists():
+            call_command('seed_departments_designations')
+            queryset = super().get_queryset()
         department_id = self.request.query_params.get('department')
         if department_id:
             return queryset.filter(department_id=department_id)

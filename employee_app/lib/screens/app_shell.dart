@@ -116,11 +116,12 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
         newPassword: next.text,
         confirmPassword: confirm.text,
       );
-      if (mounted)
+      if (mounted) {
         setState(
           () => message =
               'Password changed. Check your email and open the verification link before logging in.',
         );
+      }
     } catch (error) {
       if (mounted) setState(() => message = userMessage(error));
     } finally {
@@ -261,11 +262,12 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     });
     try {
       await widget.employeeRepository.requestEmailVerification();
-      if (mounted)
+      if (mounted) {
         setState(
           () => message =
               'Verification link sent. Please check your email and open the link to verify your account.',
         );
+      }
     } catch (error) {
       if (mounted) setState(() => message = userMessage(error));
     } finally {
@@ -460,7 +462,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value:
+                      initialValue:
                           const [
                             'Male',
                             'Female',
@@ -741,8 +743,9 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     if (error != null) return Scaffold(body: Center(child: Text(error!)));
     final employee = session?.employee;
-    if (employee == null)
+    if (employee == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final pages = <Widget>[
       DashboardPage(
         employee: employee,
@@ -872,11 +875,12 @@ class _DashboardPageState extends State<DashboardPage> {
         future: summary,
         builder: (context, snapshot) {
           if (snapshot.hasError) return Text(userMessage(snapshot.error!));
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Padding(
               padding: EdgeInsets.all(16),
               child: Center(child: CircularProgressIndicator()),
             );
+          }
           final attendance = snapshot.data!.$1;
           final leaves = snapshot.data!.$2;
           final present = attendance
@@ -1125,11 +1129,12 @@ class _AttendancePageState extends State<AttendancePage> {
         });
       }
       final position = await locationService.currentPosition();
-      if (mounted)
+      if (mounted) {
         setState(() {
           capturedPosition = position;
           captureMessage = 'Photo and location captured successfully.';
         });
+      }
     } catch (exception) {
       if (mounted) setState(() => captureMessage = userMessage(exception));
     } finally {
@@ -1153,7 +1158,7 @@ class _AttendancePageState extends State<AttendancePage> {
         longitude: position.longitude,
       );
       final refreshedStatus = await widget.onAttendanceRecorded?.call();
-      if (mounted)
+      if (mounted) {
         setState(() {
           capturedPhotoPath = null;
           capturedPosition = null;
@@ -1162,6 +1167,7 @@ class _AttendancePageState extends State<AttendancePage> {
               : 'Attendance submitted successfully.';
           future = widget.repository.list();
         });
+      }
     } catch (exception) {
       if (mounted) setState(() => captureMessage = userMessage(exception));
     } finally {
@@ -1295,13 +1301,15 @@ class _PayrollPageState extends State<PayrollPage> {
   ) => FutureBuilder<(List<PayrollItem>, List<PayrollRun>)>(
     future: future,
     builder: (context, snapshot) {
-      if (snapshot.hasError)
+      if (snapshot.hasError) {
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [Text(userMessage(snapshot.error!))],
         );
-      if (!snapshot.hasData)
+      }
+      if (!snapshot.hasData) {
         return const Center(child: CircularProgressIndicator());
+      }
       final runs = {for (final run in snapshot.data!.$2) run.id: run};
       final items = snapshot.data!.$1;
       return ListView(
@@ -1444,10 +1452,12 @@ class _LeavePageState extends State<LeavePage> {
         future: requests,
         builder: (context, snapshot) {
           if (snapshot.hasError) return Text(userMessage(snapshot.error!));
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-          if (snapshot.data!.isEmpty)
+          }
+          if (snapshot.data!.isEmpty) {
             return const Text('No leave requests found.');
+          }
           return Column(
             children: snapshot.data!
                 .map(
@@ -1478,8 +1488,9 @@ class _LeavePageState extends State<LeavePage> {
             lastDate: DateTime(2100),
             initialDate: DateTime.now(),
           );
-          if (value != null)
+          if (value != null) {
             controller.text = value.toIso8601String().substring(0, 10);
+          }
         },
         validator: (value) =>
             value == null || value.isEmpty ? 'Select a date' : null,
@@ -1636,8 +1647,9 @@ class DataPage<T> extends StatelessWidget {
         future: future,
         builder: (context, snapshot) {
           if (snapshot.hasError) return Text(userMessage(snapshot.error!));
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           if (snapshot.data!.isEmpty) return Text(empty);
           return Column(children: snapshot.data!.map(item).toList());
         },
