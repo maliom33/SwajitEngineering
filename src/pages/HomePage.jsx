@@ -1,4 +1,5 @@
 import { Bell, Search, UserCircle2, ShieldCheck, Layers, TrendingUp, Phone, Mail, MapPin, ArrowRight } from 'lucide-react';
+import logo from '../images/logo.png';
 
 const features = [
   { title: 'Integrated Operations', description: 'Unified workforce, logistics and warehouse management for steel manufacturing.', icon: Layers },
@@ -14,7 +15,7 @@ function HomePage({ onNavigateToLogin = () => {} }) {
       <div className="border-b border-slate-200 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-              <img src="src/images/logo.png" alt="logo" className='flex h-12 w-15'/>
+              <img src={logo} alt="Swajit Engineering logo" className='h-12 w-15 object-contain'/>
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Swajit Engineering, Chhatrapati Sambhajinagar</p>
               <p className="text-sm font-semibold text-slate-950">ERP & Operations Platform</p>
