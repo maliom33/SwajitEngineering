@@ -166,7 +166,9 @@ function EmployeeList() {
         if (response.data?.activation_token) {
           const query = new URLSearchParams({ email: payload.email, activation_token: response.data.activation_token });
           setActivationLink(`${frontendBaseUrl}/activate?${query.toString()}`);
-          setSuccessMessage('Employee added. Share the activation link with the employee.');
+          setSuccessMessage(response.data.activation_email_sent
+            ? 'Employee added. An activation link was sent to the employee email.'
+            : 'Employee added. Share the activation link with the employee.');
         } else {
           setSuccessMessage('Employee added successfully.');
         }

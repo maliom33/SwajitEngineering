@@ -212,4 +212,5 @@ EMAIL_HOST_PASSWORD = _normalize_email_setting(os.getenv('EMAIL_HOST_PASSWORD', 
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() == 'true'
 DEFAULT_FROM_EMAIL = _normalize_email_setting(os.getenv('DEFAULT_FROM_EMAIL', ''))
 EMAIL_VERIFICATION_URL = os.getenv('EMAIL_VERIFICATION_URL', '').strip()
+EMPLOYEE_ACTIVATION_URL = os.getenv('EMPLOYEE_ACTIVATION_URL', 'http://localhost:5173/activate').strip()
 PASSWORD_RESET_URL = os.getenv('PASSWORD_RESET_URL', 'http://localhost:5173/reset-password').strip()

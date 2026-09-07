@@ -41,6 +41,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     gender = serializers.ChoiceField(choices=['Male', 'Female', 'Other', 'Prefer not to say'])
     profile_photo = serializers.ImageField(required=False, allow_null=True)
     activation_token = serializers.SerializerMethodField(read_only=True)
+    activation_email_sent = serializers.SerializerMethodField(read_only=True)
     email_verified = serializers.SerializerMethodField(read_only=True)
     phone_verified = serializers.SerializerMethodField(read_only=True)
     profile_complete = serializers.SerializerMethodField(read_only=True)
@@ -52,11 +53,14 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = [
             field.name for field in Employee._meta.fields
             if field.name not in {'activation_token_hash', 'activation_expires_at'}
-        ] + ['activation_token', 'email_verified', 'phone_verified', 'profile_complete', 'department_name', 'designation_name']
+        ] + ['activation_token', 'activation_email_sent', 'email_verified', 'phone_verified', 'profile_complete', 'department_name', 'designation_name']
         read_only_fields = ['employee_code', 'user', 'activation_token_hash', 'activation_expires_at']
 
     def get_activation_token(self, employee):
         return getattr(employee, '_activation_token', None)
+
+    def get_activation_email_sent(self, employee):
+        return bool(getattr(employee, '_activation_email_sent', False))
 
     def get_email_verified(self, employee):
         return bool(employee.user and employee.user.email_verified)
