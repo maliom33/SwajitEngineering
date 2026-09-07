@@ -46,6 +46,8 @@ services:
         value: "https://your-frontend-domain.example/reset-password"
       - key: EMAIL_VERIFICATION_URL
         sync: false
+      - key: EMPLOYEE_ACTIVATION_URL
+        value: "https://swajit-engineering-frontend.onrender.com/activate"
 
 databases:
   - name: swajit-engineering-db

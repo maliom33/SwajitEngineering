@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 from django.db import transaction
 
 from accounts.permissions import HasPermission
+from accounts.services.activation_service import ActivationEmailError, issue_activation_email
 
 from .models import (
     Attendance,
@@ -92,6 +93,18 @@ class EmployeeViewSet(WorkforceViewSet):
     write_permissions = {'create': 'MANAGE_EMPLOYEES', 'update': 'MANAGE_EMPLOYEES', 'partial_update': 'MANAGE_EMPLOYEES', 'destroy': 'MANAGE_EMPLOYEES'}
     parser_classes = [FormParser, JSONParser, MultiPartParser]
     requires_completed_onboarding = False
+
+    def perform_create(self, serializer):
+        employee = serializer.save()
+        activation_token = getattr(employee, '_activation_token', None)
+        if not activation_token:
+            return
+        try:
+            issue_activation_email(employee.user, activation_token)
+        except ActivationEmailError:
+            employee._activation_email_sent = False
+        else:
+            employee._activation_email_sent = True
 
     def get_queryset(self):
         queryset = super().get_queryset()

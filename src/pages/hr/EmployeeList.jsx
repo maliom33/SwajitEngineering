@@ -15,6 +15,8 @@ function getValidationMessage(error) {
   return typeof firstError === 'string' ? firstError : 'Please check the employee details and try again.';
 }
 
+const frontendBaseUrl = (import.meta.env.VITE_APP_BASE_URL || 'https://swajit-engineering-frontend.onrender.com').replace(/\/$/, '');
+
 function mapEmployee(employee, departments, designations) {
   const department = employee.department_name || (employee.department ? departments.find((item) => item.department_id === employee.department)?.department_name : null);
   const designation = employee.designation_name || (employee.designation ? designations.find((item) => item.designation_id === employee.designation)?.designation_name : null);
@@ -163,8 +165,10 @@ function EmployeeList() {
         const response = await client.post('workforce/employees/', payload);
         if (response.data?.activation_token) {
           const query = new URLSearchParams({ email: payload.email, activation_token: response.data.activation_token });
-          setActivationLink(`${window.location.origin}/activate?${query.toString()}`);
-          setSuccessMessage('Employee added. Share the activation link with the employee.');
+          setActivationLink(`${frontendBaseUrl}/activate?${query.toString()}`);
+          setSuccessMessage(response.data.activation_email_sent
+            ? 'Employee added. An activation link was sent to the employee email.'
+            : 'Employee added. Share the activation link with the employee.');
         } else {
           setSuccessMessage('Employee added successfully.');
         }

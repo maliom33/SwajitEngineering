@@ -1,8 +1,5 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
@@ -58,4 +55,28 @@ android {
 
 flutter {
     source = "../.."
+}
+
+val flutterApkOutputDirectory = rootProject.layout.projectDirectory.dir("../build/app/outputs/flutter-apk")
+
+tasks.register<Copy>("copyDebugApkToFlutterOutput") {
+    dependsOn("packageDebug")
+    from(layout.buildDirectory.dir("outputs/apk/debug"))
+    include("app-debug.apk")
+    into(flutterApkOutputDirectory)
+}
+
+tasks.register<Copy>("copyReleaseApkToFlutterOutput") {
+    dependsOn("packageRelease")
+    from(layout.buildDirectory.dir("outputs/apk/release"))
+    include("app-release.apk")
+    into(flutterApkOutputDirectory)
+}
+
+tasks.matching { it.name == "assembleDebug" }.configureEach {
+    finalizedBy("copyDebugApkToFlutterOutput")
+}
+
+tasks.matching { it.name == "assembleRelease" }.configureEach {
+    finalizedBy("copyReleaseApkToFlutterOutput")
 }
