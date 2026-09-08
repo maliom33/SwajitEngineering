@@ -15,7 +15,7 @@ function getValidationMessage(error) {
   return typeof firstError === 'string' ? firstError : 'Please check the employee details and try again.';
 }
 
-const frontendBaseUrl = (import.meta.env.VITE_APP_BASE_URL || 'https://swajit-engineering-frontend.onrender.com').replace(/\/$/, '');
+const frontendBaseUrl = (import.meta.env.VITE_APP_BASE_URL || 'http://localhost:5173').replace(/\/$/, '');
 
 function mapEmployee(employee, departments, designations) {
   const department = employee.department_name || (employee.department ? departments.find((item) => item.department_id === employee.department)?.department_name : null);

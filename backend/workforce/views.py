@@ -1,5 +1,7 @@
 from django.core.management import call_command
 from django.http import FileResponse, Http404
+from django.utils import timezone
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -162,6 +164,32 @@ class AttendanceViewSet(WorkforceViewSet):
             ):
                 employee.status = Employee.Status.ACTIVE
                 employee.save(update_fields=['status', 'updated_at'])
+
+    @action(detail=True, methods=['post'], url_path='check-out')
+    def check_out(self, request, pk=None):
+        if getattr(getattr(request.user, 'role', None), 'role_code', None) != 'EMPLOYEE':
+            self.required_permission = 'MANAGE_ATTENDANCE'
+            self.check_object_permissions(request, self.get_object())
+
+        attendance = self.get_object()
+        if attendance.check_out:
+            return Response({'detail': 'Attendance has already been checked out.'}, status=400)
+        photo = request.FILES.get('photo')
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+        if not photo:
+            return Response({'photo': 'A camera photo is required for check-out.'}, status=400)
+        if latitude in (None, '') or longitude in (None, ''):
+            return Response({'location': 'Current location is required for check-out.'}, status=400)
+
+        attendance.check_out = timezone.now()
+        attendance.check_out_photo = photo
+        attendance.check_out_latitude = latitude
+        attendance.check_out_longitude = longitude
+        attendance.total_work_minutes = max(0, int((attendance.check_out - attendance.check_in).total_seconds() // 60))
+        attendance.full_clean()
+        attendance.save(update_fields=['check_out', 'check_out_photo', 'check_out_latitude', 'check_out_longitude', 'total_work_minutes', 'updated_at'])
+        return Response(self.get_serializer(attendance).data)
 
     @action(detail=True, methods=['get'], url_path='photo')
     def photo(self, request, pk=None):

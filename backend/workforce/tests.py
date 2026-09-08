@@ -216,7 +216,7 @@ class WorkforceModelTests(APITestCase):
 		self.assertFalse(created_employee.user.is_active)
 		self.assertTrue(response.data['activation_token'])
 
-		with patch('accounts.views.issue_verification_email'):
+		with patch('accounts.views.send_verification_email'):
 			activation = self.client.post(reverse('auth-activate'), {
 				'email': 'portal@example.com',
 				'activation_token': response.data['activation_token'],
@@ -232,10 +232,6 @@ class WorkforceModelTests(APITestCase):
 		self.assertFalse(created_employee.activation_token_hash)
 		self.assertIsNone(created_employee.activation_expires_at)
 
-		login = self.client.post(reverse('auth-login'), {'email': 'portal@example.com', 'password': 'NewSecurePassword123!'}, format='json')
-		self.assertEqual(login.status_code, 400, login.data)
-		created_employee.user.email_verified = True
-		created_employee.user.save(update_fields=['email_verified'])
 		login = self.client.post(reverse('auth-login'), {'email': 'portal@example.com', 'password': 'NewSecurePassword123!'}, format='json')
 		self.assertEqual(login.status_code, 200, login.data)
 		self.assertEqual(login.data['user']['role_code'], 'EMPLOYEE')
@@ -365,6 +361,34 @@ class WorkforceModelTests(APITestCase):
 		self.assertTrue(response.data['photo_available'])
 		employee.refresh_from_db()
 		self.assertEqual(employee.status, Employee.Status.ACTIVE)
+
+	def test_employee_can_check_out_with_photo_and_location(self):
+		employee_role = Role.objects.get(role_code='EMPLOYEE')
+		employee_user = User.objects.create_user(
+			email='checkout@example.com', password='SecurePassword123!', role=employee_role,
+			is_first_login=False, email_verified=False, phone_verified=True,
+		)
+		image_bytes = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+		employee = Employee.objects.create(
+			user=employee_user, first_name='Checkout', last_name='Employee', email=employee_user.email,
+			phone='1234567895', gender='Other', department=self.department, designation=self.designation,
+			joining_date=date(2026, 1, 16), employment_type=Employee.EmploymentType.FULL_TIME,
+			base_salary=Decimal('14000.00'), profile_photo=SimpleUploadedFile('profile.png', image_bytes, content_type='image/png'),
+		)
+		self.client.force_authenticate(user=employee_user)
+		check_in = self.client.post(reverse('attendance-list'), {
+			'photo': SimpleUploadedFile('check-in.png', image_bytes, content_type='image/png'),
+			'latitude': '19.876543', 'longitude': '75.123456',
+		}, format='multipart')
+		self.assertEqual(check_in.status_code, 201, check_in.data)
+		checkout = self.client.post(reverse('attendance-check-out', kwargs={'pk': check_in.data['attendance_id']}), {
+			'photo': SimpleUploadedFile('check-out.png', image_bytes, content_type='image/png'),
+			'latitude': '19.876544', 'longitude': '75.123457',
+		}, format='multipart')
+		self.assertEqual(checkout.status_code, 200, checkout.data)
+		self.assertIsNotNone(checkout.data['check_out'])
+		self.assertEqual(checkout.data['latitude'], '19.876543')
+		self.assertEqual(checkout.data['check_out_latitude'], '19.876544')
 
 	def test_employee_payroll_is_limited_to_authenticated_profile(self):
 		employee_role = Role.objects.get(role_code='EMPLOYEE')

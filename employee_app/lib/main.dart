@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/network/api_client.dart';
 import 'core/storage/secure_token_storage.dart';
+import 'core/theme/app_theme.dart';
 import 'repositories/repositories.dart';
 import 'screens/app_shell.dart';
 import 'screens/login_screen.dart';
@@ -39,46 +40,7 @@ class _EmployeeAppState extends State<EmployeeApp> {
     return MaterialApp(
       title: 'Swajit Engineering Employee',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff0d5c63)),
-        scaffoldBackgroundColor: const Color(0xfff4f7f6),
-        useMaterial3: true,
-        cardTheme: const CardThemeData(
-          margin: EdgeInsets.zero,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(18)),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xffd9e5e2)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xff0d5c63), width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-        ),
-      ),
+      theme: buildAppTheme(),
       home: FutureBuilder<bool>(
         future: storage.hasSession(),
         builder: (context, snapshot) {
@@ -95,12 +57,20 @@ class _EmployeeAppState extends State<EmployeeApp> {
                   leaveRepository: leaveRepository,
                   payrollRepository: payrollRepository,
                 )
-              : LoginScreen(
-                  authRepository: authRepository,
-                  employeeRepository: employeeRepository,
-                  attendanceRepository: attendanceRepository,
-                  leaveRepository: leaveRepository,
-                  payrollRepository: payrollRepository,
+              : WelcomeScreen(
+                  onGetStarted: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => LoginScreen(
+                          authRepository: authRepository,
+                          employeeRepository: employeeRepository,
+                          attendanceRepository: attendanceRepository,
+                          leaveRepository: leaveRepository,
+                          payrollRepository: payrollRepository,
+                        ),
+                      ),
+                    );
+                  },
                 );
         },
       ),

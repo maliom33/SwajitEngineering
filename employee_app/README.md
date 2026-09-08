@@ -57,13 +57,13 @@ The app calls `/api/auth/login/`, verifies `role_code == EMPLOYEE`, then calls `
 
 ## Verification configuration
 
-Email verification uses a secure, expiring, one-time Django verification link. Set `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL`, and `EMAIL_VERIFICATION_URL` in `backend/.env`.
+Email verification is sent by Firebase after Django account activation. The Flutter app continues to authenticate through Django JWT and reads `email_verified` from Django. Configure the Firebase server credentials and Web API key in the backend environment; Django SMTP remains required for activation and password-reset emails.
 
 Mobile numbers are normal employee profile fields. The application does not send SMS and does not use Firebase Phone Authentication or email OTPs.
 
 ## Current limitations
 
-- A real SMTP provider and public verification URL are required for email verification.
+- Firebase Email/Password authentication and the Firebase verification email template must be configured for email verification.
 - Forgot-password is not enabled because the backend has no password-reset API.
 - Payroll is not shown because the existing payroll APIs are management-oriented and do not provide an employee-scoped response. No unsafe payroll exposure was added.
 - Attendance self-marking is not presented because the existing backend workflow is not a dedicated employee punch API.

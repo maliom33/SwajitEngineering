@@ -1,7 +1,7 @@
-# Installing New APK with Render Backend
+# Installing New APK with Local Backend
 
 ## Problem
-The Flutter app is showing "Unable to connect to server" because the old APK on your Android device is still pointing to `localhost:8000` instead of the Render backend.
+The Flutter app must be rebuilt after changing the local API address. An Android emulator reaches the development machine through `10.0.2.2`.
 
 ## Solution: Uninstall Old APK & Install New One
 
@@ -21,14 +21,17 @@ adb uninstall com.example.employee_app
 adb install "C:\Users\dell\OneDrive\Desktop\SwajitEngineering\employee_app\android\app\build\outputs\apk\release\app-release.apk"
 ```
 
-The APK at this location was built with:
-- **API_BASE_URL=https://swajit-engineering-backend.onrender.com/api/**
+Build the APK from the project root with:
+```bash
+cd employee_app
+flutter build apk --release --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/
+```
 
 ### Step 4: Launch App
 - Open the app from the device app drawer
 - **First time login required** (no old session exists)
 - Use your credentials to login
-- The app should now connect to the Render backend
+- The app should now connect to the local backend
 
 ## Verify Build Date
 The APK was built on: **2026-01-09 at 14:11** (82.29 MB)
@@ -36,10 +39,8 @@ The APK was built on: **2026-01-09 at 14:11** (82.29 MB)
 ## If Still Getting Error
 
 **Check these:**
-1. Is your Android device connected to internet? (mobile data or WiFi)
-2. Can you ping the backend from the device's browser?
-   - Open: `https://swajit-engineering-backend.onrender.com/api/`
-   - Should see a 401 error or API root response
+1. Is the Django server running on `127.0.0.1:8000`?
+2. Is the emulator using `10.0.2.2:8000` as the host address?
 3. Are you using the correct email/password for login?
 
 ## Alternative: Test with Debug APK
@@ -49,7 +50,7 @@ If issues persist, you can also test with the debug APK:
 adb install "C:\Users\dell\OneDrive\Desktop\SwajitEngineering\employee_app\android\app\build\outputs\apk\debug\app-debug.apk"
 ```
 
-Debug APK also has the Render URL configured.
+Debug APK should use the same local API define.
 
 ---
 

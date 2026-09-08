@@ -80,6 +80,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 	is_first_login = models.BooleanField(default=False)
 	email_verified = models.BooleanField(default=False)
 	phone_verified = models.BooleanField(default=False)
+	firebase_uid = models.CharField(max_length=128, unique=True, null=True, blank=True)
 	role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='users', null=True, blank=True)
 	is_active = models.BooleanField(default=True)
 	is_staff = models.BooleanField(default=False)

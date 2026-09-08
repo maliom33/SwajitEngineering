@@ -50,6 +50,21 @@ python manage.py seed_departments_designations
 python manage.py runserver
 ```
 
+#### Firebase Email Verification
+Firebase is used only to send employee email-verification messages. Django remains the User, Employee, JWT, authorization, and employment-status authority.
+
+Configure these backend environment variables before activating new employee accounts:
+
+```text
+FIREBASE_SERVICE_ACCOUNT_FILE=C:\secure\firebase-service-account.json
+FIREBASE_WEB_API_KEY=your-firebase-web-api-key
+FIREBASE_CONTINUE_URL=https://your-frontend.example.com/login
+```
+
+Alternatively, provide the service-account JSON through `FIREBASE_SERVICE_ACCOUNT_JSON`. Never commit the service-account file or JSON. In Firebase Console, enable Email/Password sign-in and configure the authorized domain for `FIREBASE_CONTINUE_URL`. Existing Django JWT login remains unchanged; Django synchronizes `User.email_verified` when `/api/auth/me/` or login is called.
+
+The old `/api/auth/verification/email/verify/` route is retained only to consume legacy Django verification links issued before the Firebase migration. New verification tokens are not generated; new requests use Firebase.
+
 #### Frontend Setup
 ```bash
 # In project root directory
@@ -126,27 +141,25 @@ npm run dev
 
 ---
 
-## Deployment to Production (Render.com)
+## Local Development
 
-### Step 1: Update Backend
+### Step 1: Start Backend
 ```bash
-# Push code changes to Git
-git add .
-git commit -m "Fix HR dashboard department/designation display"
-git push origin main
-```
-
-### Step 2: Production Database Migration
-Once deployed on Render:
-```bash
-# Render provides web console access
+cd backend
 python manage.py migrate
-python manage.py seed_departments_designations (if needed)
+python manage.py runserver 127.0.0.1:8000
 ```
 
-### Step 3: Verify Production
-- Check `https://your-domain/api/workforce/employees/` returns correct fields
-- Open HR dashboard at `https://your-domain/hr`
+### Step 2: Start Frontend
+```bash
+cd ..
+npm install
+npm run dev
+```
+
+### Step 3: Verify Local Setup
+- Check `http://127.0.0.1:8000/api/` is reachable
+- Open the dashboard at `http://localhost:5173`
 - Verify department and designation names display correctly
 
 ---

@@ -206,12 +206,12 @@ python manage.py seed_departments_designations
 
 ## Deployment Notes
 
-When deploying to production (render.com):
-1. Ensure `.env` has correct DATABASE_URL
+For local development:
+1. Keep the database settings in `backend/.env` pointed at your local Postgres instance.
 2. Run migrations: `python manage.py migrate`
-3. Collect static files: `python manage.py collectstatic --noinput`
-4. Seed departments if needed: `python manage.py seed_departments_designations`
-5. Restart backend server
+3. Seed departments if needed: `python manage.py seed_departments_designations`
+4. Start the backend with `python manage.py runserver 127.0.0.1:8000`.
+5. Start the frontend with `npm run dev`.
 
 ---
 

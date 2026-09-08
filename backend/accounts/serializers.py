@@ -18,8 +18,6 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid email or password.')
         if not user.is_active:
             raise serializers.ValidationError('This account is inactive.')
-        if getattr(getattr(user, 'role', None), 'role_code', None) == 'EMPLOYEE' and not user.email_verified:
-            raise serializers.ValidationError('Please verify your email before logging in.')
         attrs['user'] = user
         return attrs
 
@@ -110,6 +108,12 @@ class UserInfoSerializer(serializers.ModelSerializer):
         employee = getattr(user, 'employee_profile', None)
         if not employee:
             return None
+        profile_photo = None
+        if employee.profile_photo:
+            profile_photo = employee.profile_photo.url
+            request = self.context.get('request')
+            if request:
+                profile_photo = request.build_absolute_uri(profile_photo)
         return {
             'employee_id': employee.employee_id,
             'employee_code': employee.employee_code,
@@ -126,5 +130,5 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'designation': employee.designation_id,
             'designation_name': employee.designation.designation_name,
 			'profile_complete': employee.profile_complete(user),
-			'profile_photo': employee.profile_photo.url if employee.profile_photo else None,
+            'profile_photo': profile_photo,
         }

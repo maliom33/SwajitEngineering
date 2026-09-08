@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
@@ -23,7 +24,8 @@ from .serializers import (
     PasswordResetRequestSerializer,
     UserInfoSerializer,
 )
-from .services.email_verification_service import EmailVerificationError, issue_verification_email, verify_email_token
+from .services.email_verification_service import verify_email_token
+from .services.firebase_verification_service import FirebaseVerificationError, send_verification_email, sync_email_verified
 from .services.password_reset_service import PasswordResetError, issue_password_reset_email
 
 
@@ -53,16 +55,15 @@ class EmployeeActivationView(APIView):
             employee.user.set_password(password)
             employee.user.is_active = True
             employee.user.is_first_login = True
+            try:
+                send_verification_email(employee.user, password)
+            except FirebaseVerificationError as error:
+                raise serializers.ValidationError({'detail': str(error)}) from error
             employee.user.save(update_fields=['password', 'is_active', 'is_first_login'])
             employee.activation_token_hash = ''
             employee.activation_expires_at = None
             employee.save(update_fields=['activation_token_hash', 'activation_expires_at'])
-        try:
-            issue_verification_email(employee.user)
-        except EmailVerificationError as error:
-            return Response({'detail': f'Account setup completed, but the verification email could not be sent: {error}'}, status=503)
-
-        return Response({'detail': 'Account setup successful. Please check your email and click the verification link before logging in.'})
+        return Response({'detail': 'Account setup successful. You can now log in.'})
 
 
 class LoginView(APIView):
@@ -72,6 +73,10 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         access, refresh = serializer.create_tokens()
+        try:
+            sync_email_verified(serializer.validated_data['user'])
+        except FirebaseVerificationError:
+            pass
         return Response({
             'access': access,
             'refresh': refresh,
@@ -92,6 +97,10 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        try:
+            sync_email_verified(request.user)
+        except FirebaseVerificationError:
+            pass
         return Response(UserInfoSerializer(request.user).data)
 
 
@@ -150,25 +159,31 @@ class PasswordResetConfirmView(APIView):
 
 
 class EmailVerificationRequestView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'email-verification'
 
     def post(self, request):
-        from workforce.models import Employee
-        email = str(request.data.get('email', '')).strip().lower()
-        employee_code = str(request.data.get('employee_code', '')).strip()
-        user = getattr(request, 'user', None)
-        if not getattr(user, 'is_authenticated', False):
-            user = User.objects.filter(email=email, employee_profile__employee_code=employee_code).first()
-        if not user or getattr(getattr(user, 'role', None), 'role_code', None) != 'EMPLOYEE' or user.email_verified:
+        user = request.user
+        if (
+            getattr(getattr(user, 'role', None), 'role_code', None) != 'EMPLOYEE'
+            or not getattr(user, 'employee_profile', None)
+        ):
+            return Response({'detail': 'Only an authenticated employee can request verification.'}, status=403)
+        if user.email_verified:
             return Response({'detail': 'If the account is eligible, a verification link will be sent.'})
+        password = str(request.data.get('password', ''))
+        if not password or not user.check_password(password):
+            return Response({'detail': 'Sign in again to request a Firebase verification email.'}, status=400)
         try:
-            issue_verification_email(user)
-        except EmailVerificationError as error:
+            send_verification_email(user, password)
+        except FirebaseVerificationError as error:
             return Response({'detail': str(error)}, status=503)
-        return Response({'detail': 'Verification link sent.'})
+        return Response({'detail': 'Verification link sent by Firebase.'})
 
 
 class EmailVerificationView(APIView):
+    """Legacy endpoint for consuming Django links issued before Firebase migration."""
     permission_classes = [AllowAny]
 
     def get(self, request):

@@ -39,12 +39,22 @@ class AttendanceRecord {
       checkIn = json['check_in'] as String?,
       checkOut = json['check_out'] as String?,
       photo = json['photo'] as String?,
+      checkOutPhoto = json['check_out_photo'] as String?,
       latitude = json['latitude']?.toString(),
-      longitude = json['longitude']?.toString();
+      longitude = json['longitude']?.toString(),
+      checkOutLatitude = json['check_out_latitude']?.toString(),
+      checkOutLongitude = json['check_out_longitude']?.toString(),
+      totalWorkMinutes = json['total_work_minutes'] as int?;
   final int id;
   final String date, status;
   final String? checkIn, checkOut;
-  final String? photo, latitude, longitude;
+  final String? photo,
+      checkOutPhoto,
+      latitude,
+      longitude,
+      checkOutLatitude,
+      checkOutLongitude;
+  final int? totalWorkMinutes;
 }
 
 class PayrollItem {
