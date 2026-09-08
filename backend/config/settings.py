@@ -30,22 +30,28 @@ def _normalize_email_setting(value):
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-nu*l@i3-8w=badrhkgz8napx=s1*+usii7=o_t_lp)#lr%uesl')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEPLOYMENT_ENV = os.getenv(
+    'DEPLOYMENT_ENV',
+    'production' if os.getenv('RENDER', '').lower() == 'true' else 'local',
+).strip().lower()
+SECRET_KEY = os.getenv('SECRET_KEY', '').strip()
+if not SECRET_KEY:
+    if DEPLOYMENT_ENV == 'production':
+        raise RuntimeError('SECRET_KEY must be configured in production.')
+    SECRET_KEY = 'django-insecure-local-development-only'
+
+SERVE_MEDIA = os.getenv('SERVE_MEDIA', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
+    for host in os.getenv(
+        'ALLOWED_HOSTS',
+        'localhost,127.0.0.1,0.0.0.0,10.0.2.2,192.168.*,10.*,172.*'
+    ).split(',')
     if host.strip()
 ]
-
-render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
-if render_hostname:
-    ALLOWED_HOSTS.append(render_hostname)
-
 
 # Application definition
 
@@ -105,10 +111,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=DEPLOYMENT_ENV == 'production',
+        )
     }
 else:
     DATABASES = {
@@ -130,6 +140,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.ScopedRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'email-verification': '3/hour',
+    },
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -137,19 +153,27 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
     if origin.strip()
 ]
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r'^https?://(localhost|127\.0\.0\.1):\d+$',
-    r'^https://.*\.onrender\.com$',
+CORS_ALLOWED_ORIGIN_REGEXES = [] if DEPLOYMENT_ENV == 'production' else [
+    r'^https?://(localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+):(\d+)$',
 ]
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+    for origin in os.getenv(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://10.0.2.2:5173,http://192.168.1.25:5173'
+    ).split(',')
     if origin.strip()
 ]
 
-if os.getenv('RENDER_EXTERNAL_HOSTNAME'):
-    CSRF_TRUSTED_ORIGINS.append(f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}")
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if DEPLOYMENT_ENV == 'production' else None
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SESSION_COOKIE_SECURE = DEPLOYMENT_ENV == 'production'
+CSRF_COOKIE_SECURE = DEPLOYMENT_ENV == 'production'
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -191,11 +215,26 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-if os.getenv('RENDER') == 'true':
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+USE_S3 = os.getenv('USE_S3', 'False').lower() == 'true'
+if USE_S3:
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '').strip()
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '').strip()
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '').strip()
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', '').strip()
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', '').strip() or None
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', '').strip() or None
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = True
+    AWS_S3_FILE_OVERWRITE = False
+    STORAGES = {
+        'default': {'BACKEND': 'storages.backends.s3.S3Storage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
+else:
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -211,6 +250,9 @@ EMAIL_HOST_USER = _normalize_email_setting(os.getenv('EMAIL_HOST_USER', ''))
 EMAIL_HOST_PASSWORD = _normalize_email_setting(os.getenv('EMAIL_HOST_PASSWORD', ''))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() == 'true'
 DEFAULT_FROM_EMAIL = _normalize_email_setting(os.getenv('DEFAULT_FROM_EMAIL', ''))
-EMAIL_VERIFICATION_URL = os.getenv('EMAIL_VERIFICATION_URL', '').strip()
 EMPLOYEE_ACTIVATION_URL = os.getenv('EMPLOYEE_ACTIVATION_URL', 'http://localhost:5173/activate').strip()
 PASSWORD_RESET_URL = os.getenv('PASSWORD_RESET_URL', 'http://localhost:5173/reset-password').strip()
+FIREBASE_SERVICE_ACCOUNT_FILE = os.getenv('FIREBASE_SERVICE_ACCOUNT_FILE', '').strip()
+FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON', '').strip()
+FIREBASE_WEB_API_KEY = os.getenv('FIREBASE_WEB_API_KEY', '').strip()
+FIREBASE_CONTINUE_URL = os.getenv('FIREBASE_CONTINUE_URL', '').strip()

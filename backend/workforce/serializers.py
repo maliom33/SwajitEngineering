@@ -162,7 +162,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
         fields = [field.name for field in Attendance._meta.fields] + ['photo_available']
-        read_only_fields = ['employee', 'attendance_date', 'check_in', 'check_out', 'created_at', 'updated_at', 'photo_available']
+        read_only_fields = ['employee', 'attendance_date', 'check_in', 'check_out', 'check_out_photo', 'check_out_latitude', 'check_out_longitude', 'total_work_minutes', 'created_at', 'updated_at', 'photo_available']
 
     def get_photo_available(self, attendance):
         return bool(attendance.photo)

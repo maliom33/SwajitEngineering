@@ -91,10 +91,7 @@ class EmployeeRepository {
     },
   );
 
-  Future<void> requestEmailVerification({
-    String? email,
-    String? employeeCode,
-  }) {
+  Future<void> requestEmailVerification({String? email, String? employeeCode, String? password}) {
     final payload = <String, String>{};
     if (email != null && email.trim().isNotEmpty) {
       payload['email'] = email.trim();
@@ -102,8 +99,13 @@ class EmployeeRepository {
     if (employeeCode != null && employeeCode.trim().isNotEmpty) {
       payload['employee_code'] = employeeCode.trim();
     }
+    if (password != null && password.isNotEmpty) {
+      payload['password'] = password;
+    }
     if (payload.isEmpty) {
-      throw StateError('Enter your email and Employee ID to resend the verification link.');
+      throw StateError(
+        'Enter your email and Employee ID to resend the verification link.',
+      );
     }
     return _api.dio.post('auth/verification/email/request/', data: payload);
   }
@@ -138,6 +140,26 @@ class AttendanceRepository {
         ),
         'latitude': normalizedLatitude,
         'longitude': normalizedLongitude,
+      }),
+    );
+    return AttendanceRecord.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<AttendanceRecord> checkOut({
+    required int attendanceId,
+    required String photoPath,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final response = await _api.dio.post(
+      'workforce/attendance/$attendanceId/check-out/',
+      data: FormData.fromMap({
+        'photo': await MultipartFile.fromFile(
+          photoPath,
+          filename: File(photoPath).uri.pathSegments.last,
+        ),
+        'latitude': double.parse(latitude.toStringAsFixed(6)),
+        'longitude': double.parse(longitude.toStringAsFixed(6)),
       }),
     );
     return AttendanceRecord.fromJson(response.data as Map<String, dynamic>);

@@ -128,7 +128,6 @@ class Employee(models.Model):
 		return bool(
 			account
 			and not account.is_first_login
-			and account.email_verified
 			and self.first_name.strip()
 			and self.last_name.strip()
 			and self.email
@@ -158,10 +157,14 @@ class Attendance(models.Model):
 	check_in = models.DateTimeField(null=True, blank=True)
 	check_out = models.DateTimeField(null=True, blank=True)
 	photo = models.ImageField(upload_to='attendance/%Y/%m/%d/', null=True, blank=True)
+	check_out_photo = models.ImageField(upload_to='attendance/check-out/%Y/%m/%d/', null=True, blank=True)
 	latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, validators=[MinValueValidator(Decimal('-90')), MaxValueValidator(Decimal('90'))])
 	longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, validators=[MinValueValidator(Decimal('-180')), MaxValueValidator(Decimal('180'))])
+	check_out_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, validators=[MinValueValidator(Decimal('-90')), MaxValueValidator(Decimal('90'))])
+	check_out_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, validators=[MinValueValidator(Decimal('-180')), MaxValueValidator(Decimal('180'))])
 	status = models.CharField(max_length=20, choices=Status.choices)
 	work_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(Decimal('0'))])
+	total_work_minutes = models.PositiveIntegerField(null=True, blank=True)
 	attendance_method = models.CharField(max_length=20, choices=AttendanceMethod.choices, default=AttendanceMethod.MANUAL)
 	confidence_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('100'))])
 	remarks = models.TextField(blank=True)

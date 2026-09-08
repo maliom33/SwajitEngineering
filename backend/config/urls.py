@@ -17,9 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
+from core.views import HealthView
 
 urlpatterns = [
+    path('api/health/', HealthView.as_view(), name='health'),
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
     path('api/workforce/', include('workforce.urls')),
@@ -32,5 +35,14 @@ urlpatterns = [
     path('api/analytics/', include('analytics.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG or settings.SERVE_MEDIA:
+    if settings.DEBUG:
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    else:
+        urlpatterns += [
+            re_path(
+                r'^media/(?P<path>.*)$',
+                serve,
+                {'document_root': settings.MEDIA_ROOT},
+            )
+        ]
